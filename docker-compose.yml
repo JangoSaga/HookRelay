@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:17
+    container_name: hookrelay-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hookrelay}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hookrelay}
+      POSTGRES_DB: ${POSTGRES_DB:-hookrelay}
+    ports:
+      - "5432:5432"
+    volumes:
+      - hookrelay-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hookrelay} -d ${POSTGRES_DB:-hookrelay}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Disposable database for pytest. Data lives in RAM and is wiped on stop.
+  db-test:
+    image: postgres:17
+    container_name: hookrelay-db-test
+    environment:
+      POSTGRES_USER: hookrelay_test
+      POSTGRES_PASSWORD: hookrelay_test
+      POSTGRES_DB: hookrelay_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hookrelay_test -d hookrelay_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  hookrelay-pgdata:
