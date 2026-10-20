@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import OperationalError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
@@ -35,6 +36,11 @@ async def validation_exception_handler(
     return error_response(422, "Request validation failed", details)
 
 
+async def database_unavailable_handler(request: Request, exc: OperationalError) -> JSONResponse:
+    # Never expose the driver message: it can contain hostnames and SQL.
+    return error_response(503, "Database temporarily unavailable")
+
+
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     return error_response(500, "Internal server error")
 
@@ -42,4 +48,5 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    app.add_exception_handler(OperationalError, database_unavailable_handler)
     app.add_exception_handler(Exception, unhandled_exception_handler)

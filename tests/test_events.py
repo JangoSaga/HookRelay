@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import uuid4
 
 import pytest
@@ -25,7 +26,8 @@ def test_create_event_returns_201_with_server_fields(client):
     assert data["payload"] == {"invoice_id": "inv_1", "amount": 100}
     assert data["status"] == "accepted"
     assert data["received_at"]
-    assert data["occurred_at"].startswith("2026-10-20T10:00:00")
+    # Stored and returned in UTC: same instant as the +05:30 input.
+    assert datetime.fromisoformat(data["occurred_at"]) == datetime.fromisoformat("2026-10-20T10:00:00+05:30")
 
 
 def test_created_event_can_be_fetched(client):

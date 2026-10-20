@@ -7,10 +7,15 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.config import get_settings
 
 
+def make_engine(url: str) -> Engine:
+    # pool_pre_ping drops dead connections (e.g. after a database restart).
+    # timezone=utc makes every timestamp come back as UTC regardless of server settings.
+    return create_engine(url, pool_pre_ping=True, connect_args={"options": "-c timezone=utc"})
+
+
 @lru_cache
 def get_engine() -> Engine:
-    # pool_pre_ping drops dead connections (e.g. after a database restart).
-    return create_engine(get_settings().database_url, pool_pre_ping=True)
+    return make_engine(get_settings().database_url)
 
 
 @lru_cache
