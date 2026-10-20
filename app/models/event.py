@@ -39,6 +39,9 @@ class EventRequest(BaseModel):
         return value
     
 class EventResponse(BaseModel):
+    # Allows building the response directly from an EventRecord
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     event_type: str
     payload: dict[str, Any]
